@@ -1,11 +1,16 @@
-Example actix_web with POST reading users in a MariaDB database.
+Example actix_web with POST reading users in a MariaDB database using the sqlx crate.
 
 Build and run the server:
 ```bash
 cargo install cargo-run-script
 cargo run-script db_create
 cargo run
+# OR
+cargo install cargo-watch --locked
+cargo watch -x run
 ```
+
+
 
 Send a post request to the server:
 ```bash
@@ -24,4 +29,5 @@ curl \
 }
 
 ```
-  
+
+MIT LICENSE
