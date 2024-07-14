@@ -1,16 +1,11 @@
-CREATE OR REPLACE USER 'user'@'localhost' IDENTIFIED BY 'password';
-CREATE OR REPLACE USER 'user'@'172.17.0.1' IDENTIFIED BY 'password';
-GRANT ALL PRIVILEGES ON sqlx.* TO 'user'@'localhost' WITH GRANT OPTION;
-GRANT ALL PRIVILEGES ON sqlx.* TO 'user'@'172.17.0.1' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
-
 CREATE TABLE IF NOT EXISTS users(
-    id BIGINT UNSIGNED AUTO_INCREMENT,
-    username VARCHAR(64) NOT NULL,
-    email VARCHAR(128) NOT NULL,
-    PRIMARY KEY(id)
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(128) NOT NULL,
+    -- RFC 3696: An email address must not exceed 254 characters. */
+    passwd BYTEA NOT NULL,
+    email VARCHAR(256) NOT NULL
 );
 
-INSERT INTO users(username, email)
-VALUES ('Dave', 'dave@gmail.com'),
-       ('Bill', 'bill@gmail.com');
+INSERT INTO users(username, passwd, email)
+VALUES ('Dave', sha256('changeme'), 'dave@gmail.com'),
+       ('Bill', sha256('password1'), 'bill@gmail.com');

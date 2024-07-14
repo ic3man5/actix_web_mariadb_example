@@ -1,23 +1,23 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use serde::{Deserialize, Serialize};
-use sqlx::mysql::{MySqlPool, MySqlPoolOptions};
+use sqlx::postgres::{PgPool, PgPoolOptions};
 
 
 
 #[derive(Clone)]
 struct AppState {
-    pool: MySqlPool,
+    pool: PgPool,
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let ip = "127.0.0.1";
-    let port = 8080;
-    println!("Starting server at {ip}:{port}");
+    let port = 12345;
+    println!("Starting server at http://{ip}:{port}");
 
-    const DB_URL: &str = "mysql://user:password@127.0.0.1:3306/sqlx";
+    const DB_URL: &str = "postgres://user:password@127.0.0.1:5432/sqlx";
 
-    let pool: MySqlPool = MySqlPoolOptions::new()
+    let pool: PgPool = PgPoolOptions::new()
         .max_connections(10)
         .connect(DB_URL)
         .await
@@ -32,7 +32,7 @@ async fn main() -> std::io::Result<()> {
                 .service(user)
             )
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("127.0.0.1", port))?
     .run()
     .await
 }
@@ -44,7 +44,7 @@ async fn hello() -> impl Responder {
 
 #[derive(Serialize, Deserialize)]
 struct UserReq {
-    id: u64,
+    id: i64,
 }
 
 #[post("/user")]
@@ -54,7 +54,7 @@ async fn user(user_id: web::Json<UserReq>, app_state: web::Data<AppState>) -> im
     
     let user: sqlx::Result<User> = sqlx::query_as!(
         User,
-        "SELECT id, username, email FROM users WHERE id = ?",
+        "SELECT id, username, passwd, email FROM users WHERE id = $1",
         user_id,
     ).fetch_one(&app_state.pool).await;
 
@@ -66,7 +66,8 @@ async fn user(user_id: web::Json<UserReq>, app_state: web::Data<AppState>) -> im
 
 #[derive(Serialize, Deserialize)]
 struct User {
-    id: u64,
+    id: i64,
     username: String,
+    passwd: Vec<u8>,
     email: String
 }
